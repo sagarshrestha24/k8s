@@ -55,7 +55,7 @@ When we want to upgrade the configuration,
 ```
 git clone https://github.com/osmsolutions/mbm-infra
 cd mbm-infra/monitoring
-helm upgrade prometheus prometheus
+helm upgrade prometheus prometheus -n monitoring
 ```
 
  
@@ -63,3 +63,73 @@ Access to Prometheus UI
 ```
 kubectl port-forward svc/prometheus-server 9090:80 --address 0.0.0.0 -n monitoring
 ```
+
+
+
+## Prometheus Blackbox Exporter
+
+Blackbox Exporter is used to probe endpoints like HTTPS, HTTP, TCP, DNS, and ICMP. After you define the endpoint, Blackbox Exporter generates metrics that can be visualized using tools like Grafana. One of the most important feature of Blackbox Exporter is measuring the response time of endpoints.
+
+The following diagram shows the flow of Blackbox Exporter monitoring an endpoint.
+![image](https://github.com/sagarshrestha24/k8s/assets/76894861/5abd9868-c9fd-4d90-8f97-374f84bd8e53)
+
+Clone the blackbox-exporter helm chart with
+```
+git clone https://github.com/osmsolutions/mbm-infra
+cd mbm-infra/monitoring
+```
+
+Install BlackBox exporter with helm charts with command:
+```
+helm install prometheus-blackbox-exporter ./prometheus-blackbox-exporter -n monitoring
+```
+verify after BlackBox exporter installation on k8s
+
+![image](https://github.com/sagarshrestha24/k8s/assets/76894861/ab2721f2-f946-44f0-942e-e57b391f35a0)
+
+Configure Prometheus for Blackbox exporter, you can add the configuration under additionalScrapeConfigs[] in value.yaml in kube-prometheus-stack helm chart.
+
+We will majorly be adding configs for the following in Prometheus for our endpoint monitoring.
+
+    Probing external targets
+    Probing services via the Blackbox Exporter
+    Probing ingresses via the Blackbox Exporter
+    Probing pods via Blackbox Exporter
+
+In the kube-prometheus-stack’s values.yaml, add the following blocks under additionalScrapeConfigs[] section:
+```
+additionalScrapeConfigs: 
+      - job_name: 'uptime-check-endpoint'
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+        static_configs:
+          - targets:
+            - https://google.com
+            - https://abc.com:8080
+            - <add-external-and-internal-endpoint>
+                
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: prometheus-blackbox-exporter:9115
+```
+
+After adding above config ,upgrade helm charts :
+```
+helm upgrade prometheus prometheus  -n monitoring
+```
+
+Verify the generated metrics in Prometheus
+
+Once the changes are applied and the resources for the Blackbox Exporter are deployed, we can verify the status of targets in Prometheus. We can check whether the Blackbox Exporter is up with the registered targets by navigating to the Status tab and then selecting Targets in the Prometheus UI.
+
+Here you can see we are using https://www.google.com as an external target for reference with its state UP. We can also check if metrics are getting populated by looking for metrics starting with probe_
+
+![image](https://github.com/sagarshrestha24/k8s/assets/76894861/5dbca9d0-9d86-42e4-9974-e918d2e142d5)
+
+
+

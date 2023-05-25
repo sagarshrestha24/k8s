@@ -125,6 +125,9 @@ helm upgrade prometheus prometheus  -n monitoring
 
 Verify the generated metrics in Prometheus
 
+
+
+
 Once the changes are applied and the resources for the Blackbox Exporter are deployed, we can verify the status of targets in Prometheus. We can check whether the Blackbox Exporter is up with the registered targets by navigating to the Status tab and then selecting Targets in the Prometheus UI.
 
 Here you can see we are using https://www.google.com as an external target for reference with its state UP. We can also check if metrics are getting populated by looking for metrics starting with probe_
@@ -132,4 +135,15 @@ Here you can see we are using https://www.google.com as an external target for r
 ![image](https://github.com/sagarshrestha24/k8s/assets/76894861/5dbca9d0-9d86-42e4-9974-e918d2e142d5)
 
 
+## Prometheus Mongodb Exporter
 
+The MongoDB Exporter collects and exports oplog, replica set, server status, sharding and storage engine metrics.
+
+Installl Mongodb Exporter 
+
+```
+git clone https://github.com/osmsolutions/mbm-infra
+cd mbm-infra/monitoring
+helm install prometheus-mongodb-exporter prometheus-mongodb-exporter/ -n monitoring
+```
+![image](https://github.com/sagarshrestha24/k8s/assets/76894861/e69bc2de-59d4-4a88-be7e-cd7df77ac628)

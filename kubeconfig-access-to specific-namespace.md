@@ -16,6 +16,14 @@ kind: ServiceAccount
 metadata:
   name: limited-service-account
   namespace: NAMESPACE
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+ name: sa-secret
+ annotations:
+ kubernetes.io/service-account.name: “limited-service-account”
 ```
 Then create the object:
 ```
